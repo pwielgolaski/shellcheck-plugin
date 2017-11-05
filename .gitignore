@@ -1,0 +1,9 @@
+### intellij ###
+.idea/
+out/
+
+*.iml
+
+### plugin binary ###
+shellcheck-plugin.jar
+shellcheck-plugin.zip

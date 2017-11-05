@@ -1,0 +1,45 @@
+<idea-plugin url="https://github.com/pwielgolaski/shellcheck-plugin">
+    <id>com.shellcheck</id>
+    <name>Shellcheck</name>
+    <version>0.1.0</version>
+    <category>Web</category>
+    <vendor email="pwielgolaski@gmail.com" url="https://github.com/pwielgolaski/">Piotr Wielgolaski</vendor>
+
+    <description><![CDATA[
+    Analyze script with with shellcheck
+    ]]></description>
+
+    <change-notes><![CDATA[
+       <p>0.1.0 First experimental version.</p>
+    ]]></change-notes>
+
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+    <idea-version since-build="145"/>
+
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html on how to target different products -->
+    <depends>com.intellij.modules.lang</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <projectService serviceImplementation="com.shellcheck.settings.Settings"/>
+        <projectConfigurable instance="com.shellcheck.settings.ShellcheckSettingsPage"/>
+        <localInspection language="Bash" shortName="ShellcheckInspection"
+                         enabledByDefault="true" level="ERROR"
+                         bundle="com.shellcheck.ShellcheckBundle"
+                         implementationClass="com.shellcheck.ShellcheckInspection"
+                         displayName="Shellcheck" groupKey="shellcheck.inspection.group.name"/>
+        <externalAnnotator language="TEXT" implementationClass="com.shellcheck.ShellcheckExternalAnnotator"/>
+        <externalAnnotator language="Bash" implementationClass="com.shellcheck.ShellcheckExternalAnnotator"/>
+    </extensions>
+
+    <project-components>
+        <!-- Add your project components here -->
+        <component>
+            <implementation-class>com.shellcheck.ShellcheckProjectComponent</implementation-class>
+        </component>
+    </project-components>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+
+</idea-plugin>
