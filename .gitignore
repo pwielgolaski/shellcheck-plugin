@@ -1,8 +1,8 @@
 ### intellij ###
-.idea/
+!.idea/
 out/
 
-*.iml
+!*.iml
 
 ### plugin binary ###
 shellcheck-plugin.jar
