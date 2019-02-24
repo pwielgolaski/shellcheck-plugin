@@ -1,7 +1,7 @@
 <idea-plugin url="https://github.com/pwielgolaski/shellcheck-plugin">
     <id>com.shellcheck</id>
     <name>Shellcheck</name>
-    <version>0.1.0</version>
+    <version>0.1.2</version>
     <category>Web</category>
     <vendor email="pwielgolaski@gmail.com" url="https://github.com/pwielgolaski/">Piotr Wielgolaski</vendor>
 
@@ -11,6 +11,8 @@
 
     <change-notes><![CDATA[
        <p>0.1.0 First experimental version.</p>
+       <p>0.1.1 Fixes https://github.com/pwielgolaski/shellcheck-plugin/issues/5</p>
+       <p>0.1.2 Support latest shellcheck to address some of https://github.com/pwielgolaski/shellcheck-plugin/issues/3</p>
     ]]></change-notes>
 
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->

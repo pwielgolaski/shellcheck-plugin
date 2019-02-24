@@ -121,6 +121,8 @@ public class ShellcheckExternalAnnotator extends ExternalAnnotator<ShellcheckAnn
         int lineEndOffset = document.getLineEndOffset(errorLine);
 
         int errorLineStartOffset = appendNormalizeColumn(document, lineStartOffset, lineEndOffset, issue.column - 1);
+        int endColumn = issue.endColumn == 0 ? issue.column : issue.endColumn;
+        int errorLineEndOffset = appendNormalizeColumn(document, lineStartOffset, lineEndOffset, endColumn - 1);
         if (errorLineStartOffset == -1) {
             return null;
         }
@@ -130,7 +132,7 @@ public class ShellcheckExternalAnnotator extends ExternalAnnotator<ShellcheckAnn
             int start = DocumentUtil.getFirstNonSpaceCharOffset(document, lineStartOffset, lineEndOffset);
             range = new TextRange(start, lineEndOffset);
         } else {
-            range = new TextRange(errorLineStartOffset, errorLineStartOffset + 1);
+            range = new TextRange(errorLineStartOffset, errorLineEndOffset);
         }
 
         Annotation annotation = holder.createAnnotation(severity, range, "Shellcheck: " + issue.getFormattedMessage());

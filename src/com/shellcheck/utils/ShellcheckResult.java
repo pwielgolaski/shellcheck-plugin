@@ -27,6 +27,7 @@ public class ShellcheckResult {
     public static class Issue {
         public int line;
         public int column;
+        public int endColumn;
         public String level;
         public String code;
         public String message;
