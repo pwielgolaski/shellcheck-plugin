@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import java.awt.event.ItemEvent;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class ShellcheckSettingsPage implements Configurable {
@@ -75,7 +76,7 @@ public class ShellcheckSettingsPage implements Configurable {
         String version = "n.a.";
         if (ShellcheckFinder.validatePath(project, shellcheckExe)) {
             try {
-                version = ShellcheckRunner.runVersion(shellcheckExe, project.getBasePath());
+                version = ShellcheckRunner.runVersion(shellcheckExe, Optional.ofNullable(project).map(Project::getBasePath).orElse("."));
             } catch (ExecutionException e) {
                 version = "error";
             }
