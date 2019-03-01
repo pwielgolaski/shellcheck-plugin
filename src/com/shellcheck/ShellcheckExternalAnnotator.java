@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 public class ShellcheckExternalAnnotator extends ExternalAnnotator<ShellcheckAnnotationInput, ShellcheckAnnotationResult> {
 
@@ -117,42 +118,40 @@ public class ShellcheckExternalAnnotator extends ExternalAnnotator<ShellcheckAnn
             return null;
         }
 
-        int lineStartOffset = document.getLineStartOffset(errorLine);
-        int lineEndOffset = document.getLineEndOffset(errorLine);
-
-        int errorLineStartOffset = appendNormalizeColumn(document, lineStartOffset, lineEndOffset, issue.column - 1);
+        TextRange lineRange = TextRange.create(document.getLineStartOffset(errorLine), document.getLineEndOffset(errorLine));
+        int errorLineStartOffset = appendNormalizeColumn(document, lineRange, issue.column - 1).orElse(lineRange.getStartOffset());
         int endColumn = issue.endColumn == 0 ? issue.column : issue.endColumn;
-        int errorLineEndOffset = appendNormalizeColumn(document, lineStartOffset, lineEndOffset, endColumn - 1);
+        int errorLineEndOffset = appendNormalizeColumn(document, lineRange, endColumn - 1).orElse(lineRange.getEndOffset());
         if (errorLineStartOffset == -1) {
             return null;
         }
 
         TextRange range;
         if (showErrorOnWholeLine) {
-            int start = DocumentUtil.getFirstNonSpaceCharOffset(document, lineStartOffset, lineEndOffset);
-            range = new TextRange(start, lineEndOffset);
+            int start = DocumentUtil.getFirstNonSpaceCharOffset(document, lineRange.getStartOffset(), lineRange.getEndOffset());
+            range = new TextRange(start, lineRange.getEndOffset());
         } else {
             range = new TextRange(errorLineStartOffset, errorLineEndOffset);
         }
 
         Annotation annotation = holder.createAnnotation(severity, range, "Shellcheck: " + issue.getFormattedMessage());
         if (annotation != null) {
-            annotation.setAfterEndOfLine(errorLineStartOffset == lineEndOffset);
+            annotation.setAfterEndOfLine(errorLineStartOffset == lineRange.getEndOffset());
         }
         return annotation;
     }
 
-    private int appendNormalizeColumn(@NotNull Document document, int startOffset, int endOffset, int column) {
+    private OptionalInt appendNormalizeColumn(@NotNull Document document, TextRange lineRange, int column) {
         CharSequence text = document.getImmutableCharSequence();
         int col = 0;
-        for (int i = startOffset; i < endOffset; i++) {
+        for (int i = lineRange.getStartOffset(); i < lineRange.getEndOffset(); i++) {
             char c = text.charAt(i);
             col += (c == '\t' ? 8 : 1);
             if (col > column) {
-                return i;
+                return OptionalInt.of(i);
             }
         }
-        return startOffset;
+        return OptionalInt.empty();
     }
 
     private static boolean isShellcheckFile(PsiFile file) {
