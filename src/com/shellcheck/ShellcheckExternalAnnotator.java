@@ -111,47 +111,25 @@ public class ShellcheckExternalAnnotator extends ExternalAnnotator<ShellcheckAnn
     private Annotation createAnnotation(@NotNull AnnotationHolder holder, @NotNull Document document, @NotNull ShellcheckResult.Issue issue,
                                         @NotNull HighlightSeverity severity,
                                         ShellcheckProjectComponent component) {
-        int errorLine = issue.line - 1;
         boolean showErrorOnWholeLine = component.getSettings().highlightWholeLine;
-
-        if (errorLine < 0 || errorLine >= document.getLineCount()) {
-            return null;
-        }
-
-        TextRange lineRange = TextRange.create(document.getLineStartOffset(errorLine), document.getLineEndOffset(errorLine));
-        int errorLineStartOffset = appendNormalizeColumn(document, lineRange, issue.column - 1).orElse(lineRange.getStartOffset());
-        int endColumn = issue.endColumn == 0 ? issue.column : issue.endColumn;
-        int errorLineEndOffset = appendNormalizeColumn(document, lineRange, endColumn - 1).orElse(lineRange.getEndOffset());
-        if (errorLineStartOffset == -1) {
+        ErrorRange errorRange = new ErrorRange(document, issue);
+        if (!errorRange.isValid()) {
             return null;
         }
 
         TextRange range;
         if (showErrorOnWholeLine) {
-            int start = DocumentUtil.getFirstNonSpaceCharOffset(document, lineRange.getStartOffset(), lineRange.getEndOffset());
-            range = new TextRange(start, lineRange.getEndOffset());
+            int start = DocumentUtil.getFirstNonSpaceCharOffset(document, errorRange.getLineRange().getStartOffset(), errorRange.getLineRange().getEndOffset());
+            range = new TextRange(start, errorRange.getLineRange().getEndOffset());
         } else {
-            range = new TextRange(errorLineStartOffset, errorLineEndOffset);
+            range = new TextRange(errorRange.getColumnRange().getStartOffset(), errorRange.getColumnRange().getEndOffset());
         }
 
         Annotation annotation = holder.createAnnotation(severity, range, "Shellcheck: " + issue.getFormattedMessage());
         if (annotation != null) {
-            annotation.setAfterEndOfLine(errorLineStartOffset == lineRange.getEndOffset());
+            annotation.setAfterEndOfLine(errorRange.getColumnRange().getStartOffset() == errorRange.getLineRange().getEndOffset());
         }
         return annotation;
-    }
-
-    private OptionalInt appendNormalizeColumn(@NotNull Document document, TextRange lineRange, int column) {
-        CharSequence text = document.getImmutableCharSequence();
-        int col = 0;
-        for (int i = lineRange.getStartOffset(); i < lineRange.getEndOffset(); i++) {
-            char c = text.charAt(i);
-            col += (c == '\t' ? 8 : 1);
-            if (col > column) {
-                return OptionalInt.of(i);
-            }
-        }
-        return OptionalInt.empty();
     }
 
     private static boolean isShellcheckFile(PsiFile file) {
@@ -160,6 +138,59 @@ public class ShellcheckExternalAnnotator extends ExternalAnnotator<ShellcheckAnn
         boolean isBash = file.getFileType().getName().equals("Bash");
         String fileExtension = Optional.ofNullable(file.getVirtualFile()).map(VirtualFile::getExtension).orElse("");
         return isBash || acceptedExtensions.contains(fileExtension);
+    }
+
+    private static class ErrorRange {
+        private boolean valid;
+        private TextRange lineRange;
+        private TextRange columnRange;
+
+        ErrorRange(Document document, ShellcheckResult.Issue issue) {
+            calculate(document, issue);
+        }
+
+        boolean isValid() {
+            return valid;
+        }
+
+        TextRange getLineRange() {
+            return lineRange;
+        }
+
+        TextRange getColumnRange() {
+            return columnRange;
+        }
+
+        private void calculate(Document document, ShellcheckResult.Issue issue) {
+            int line = issue.line - 1;
+            int endLine = issue.endLine == 0 ? line : issue.endLine - 1;
+
+            if (endLine >= 0 && endLine < document.getLineCount()) {
+                TextRange beginLineRange = TextRange.create(document.getLineStartOffset(line), document.getLineEndOffset(line));
+                int lineStartOffset = appendNormalizeColumn(document, beginLineRange, issue.column - 1).orElse(beginLineRange.getStartOffset());
+
+                int endColumn = issue.endColumn == 0 ? issue.column : issue.endColumn;
+                TextRange endLineRange = TextRange.create(document.getLineStartOffset(endLine), document.getLineEndOffset(endLine));
+                int endLineEndOffset = appendNormalizeColumn(document, endLineRange, endColumn - 1).orElse(endLineRange.getEndOffset());
+
+                lineRange = TextRange.create(beginLineRange.getStartOffset(), endLineRange.getEndOffset());
+                columnRange = TextRange.create(lineStartOffset, endLineEndOffset);
+                valid = true;
+            }
+        }
+
+        private OptionalInt appendNormalizeColumn(@NotNull Document document, TextRange lineRange, int column) {
+            CharSequence text = document.getImmutableCharSequence();
+            int col = 0;
+            for (int i = lineRange.getStartOffset(); i < lineRange.getEndOffset(); i++) {
+                char c = text.charAt(i);
+                col += (c == '\t' ? 8 : 1);
+                if (col > column) {
+                    return OptionalInt.of(i);
+                }
+            }
+            return OptionalInt.empty();
+        }
     }
 }
 
