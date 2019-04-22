@@ -90,7 +90,7 @@ public class ShellcheckSettingsPage implements Configurable {
         textFieldWithHistory.setMinimumAndPreferredWidth(0);
 
         SwingHelper.addHistoryOnExpansion(textFieldWithHistory, ShellcheckFinder::findAllShellcheckExe);
-        SwingHelper.installFileCompletionAndBrowseDialog(project, shellcheckExeField, "Select Shellcheck Exe", FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
+        SwingHelper.installFileCompletionAndBrowseDialog(project, shellcheckExeField, "Select Shellcheck", FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
     }
 
     @Nls
