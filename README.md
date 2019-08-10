@@ -1,4 +1,4 @@
-# Archive 
+# Project archive since 2019.08.10 
 
 As from version 2019.2 idea support shellcheck without any plugin https://www.jetbrains.com/help/idea/2019.2/shell-scripts.html
 There is no value in developing this plugin.
